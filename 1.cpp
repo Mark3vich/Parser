@@ -32,6 +32,16 @@ public:
     {
         return this->name;
     }
+
+    string *getNameAdress()
+    {
+        return &this->name;
+    }
+
+    void incrementCount(int incrementValue = 1)
+    {
+        count += incrementValue;
+    }
 };
 
 class FileReader
@@ -49,7 +59,6 @@ public:
             while (getline(in, line))
             {
                 storage.push_back(line);
-                // cout << line << endl;
             }
         }
         in.close();
@@ -64,7 +73,7 @@ private:
     int count = 0;
 
 public:
-    Parser(const vector<string> &storage)
+    map<string, value> parserFile(const vector<string> &storage)
     {
         bool found = false;
         for (int i = 0; i < storage.size(); i++)
@@ -82,13 +91,16 @@ public:
                         }
                         if (key != "" && storage[i][z] == '<')
                         {
-                            if(result[key].getName() != "") {
+                            if (result[key].getName() != "")
+                            {
                                 count += 1;
-                            } else { 
+                            }
+                            else
+                            {
                                 count = 1;
                             }
                             result[key] = value(count, key);
-                            key = ""; // Сброс ключа после записи
+                            key = "";
                             break;
                         }
                     }
@@ -99,17 +111,63 @@ public:
         {
             cerr << "No <h1> tag found!" << endl;
         }
+
+        return result;
+    }
+};
+
+class MapProcessing
+{
+private:
+    map<string, value> result;
+
+    void printMap(map<string, value>::iterator it)
+    {
+        cout << "Key: " << it->first << "\n"
+             << "Count: " << it->second.getCount() << "\n"
+             << "Adress: " << it->second.getNameAdress() << "\n"
+             << endl;
+    }
+
+public:
+    MapProcessing(map<string, value> stories)
+    {
+        this->result = stories;
     }
 
     void getMap()
     {
         for (map<string, value>::iterator it = result.begin(); it != result.end(); ++it)
         {
-            cout << "Key: " << it->first << "\n"
-                 << "Count: " << it->second.getCount() << "\n"
-                 << "Name: " << it->second.getName() << "\n"
-                 << endl;
+            printMap(it);
         }
+    }
+
+    void search(string key)
+    {
+        for (map<string, value>::iterator it = result.begin(); it != result.end(); ++it)
+        {
+            if (it->first == key)
+            {
+                printMap(it);
+                return;
+            }
+        }
+
+        cout << "Key not found!" << endl;
+    }
+
+    void mergingPairs(string key1, string key2)
+    {
+        if (result.find(key1) != result.end() && result.find(key2) != result.end())
+        {
+            result[key1].incrementCount(result[key2].getCount());
+            result.erase(key2);
+            cout << "Pair merged" << endl;
+            return;
+        }
+
+        cout << "Keys not found!" << endl;
     }
 };
 
@@ -117,8 +175,20 @@ int main()
 {
     vector<string> storage;
     FileReader reader(FILENAME, storage);
-    Parser parser(storage);
-    parser.getMap();
+
+    Parser parser = Parser();
+
+    MapProcessing processor = MapProcessing(parser.parserFile(storage));
+
+    processor.getMap();
+    
+    processor.search("Сидоров");
+    processor.search("Слово 2");
+
+    processor.mergingPairs("Сидоров", "Слово 2");
+    processor.mergingPairs("Слово 2", "Слово 3");
+
+    processor.getMap();
 
     return 0;
 }
