@@ -72,6 +72,50 @@ private:
     map<string, value> result;
     int count = 0;
 
+    void CheckingForAnotherTag(const string &storage, int &index)
+    {
+        for (int i = index + 1; i < storage.size(); i++)
+        {
+            if (storage[i] == '>')
+            {
+                index = i;
+            }
+
+            if (storage[i] == '<' && storage[i + 1] == '/')
+            {
+                return;
+            }
+        }
+    }
+
+    bool CheckingForTag(const string &storage)
+    {
+        bool isFlag = false;
+        int numberOfTagsThatOpen = 0;
+        int numberOfTagsThatClose = 0;
+        bool wasThereClosingCharacter = false;
+        for (int i = 0; i < storage.size(); i++)
+        {
+            if (storage[i] == '<')
+            {
+                numberOfTagsThatOpen += 1;
+            }
+            if (storage[i] == '>')
+            {
+                numberOfTagsThatClose += 1;
+            }
+            if (storage[i] == '/')
+            {
+                wasThereClosingCharacter = true;
+            }
+        }
+        if (numberOfTagsThatOpen == numberOfTagsThatClose && numberOfTagsThatOpen >= 2 && numberOfTagsThatClose >= 2 && wasThereClosingCharacter)
+        {
+            isFlag = true;
+        }
+        return isFlag;
+    }
+
 public:
     map<string, value> parserFile(const vector<string> &storage)
     {
@@ -80,11 +124,24 @@ public:
         {
             for (int j = 0; j < storage[i].size(); j++)
             {
-                if (storage[i].substr(j, 4) == "<h1>")
+                // Проверка на наличие тега (фильтр тегоав)
+                if (!CheckingForTag(storage[i]))
                 {
+                    break;
+                }
+
+                // Ищем открытие тега (нужен чтобы избежать все лишние возле тега)
+                if (storage[i][j] == '<')
+                {
+                    // Имется хотябы одно слово
                     found = true;
-                    for (int z = j + 4; z < storage[i].size(); z++)
+
+                    // Ищем последний вложеенный тег
+                    CheckingForAnotherTag(storage[i], j);
+
+                    for (int z = j + 1; z < storage[i].size(); z++)
                     {
+                        // Собираем информацию, пока не найдем открытие закрывающего тега
                         if (storage[i][z] != '<')
                         {
                             key += storage[i][z];
@@ -104,12 +161,13 @@ public:
                             break;
                         }
                     }
+                    break;
                 }
             }
         }
         if (!found)
         {
-            cerr << "No <h1> tag found!" << endl;
+            cerr << "No tag found!" << endl;
         }
 
         return result;
@@ -181,7 +239,7 @@ int main()
     MapProcessing processor = MapProcessing(parser.parserFile(storage));
 
     processor.getMap();
-    
+
     processor.search("Сидоров");
     processor.search("Слово 2");
 
