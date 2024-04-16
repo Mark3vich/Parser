@@ -74,7 +74,7 @@ private:
     map<string, value> result;
     int count = 0;
 
-    void CheckingForAnotherTag(const string &storage, int &index)
+    void checkingForAnotherTag(const string &storage, int &index)
     {
         for (int i = index + 1; i < storage.size(); i++)
         {
@@ -90,7 +90,7 @@ private:
         }
     }
 
-    bool CheckingForTag(const string &storage)
+    bool checkingForTag(const string &storage)
     {
         bool isFlag = false;
         int numberOfTagsThatOpen = 0;
@@ -129,7 +129,7 @@ public:
             for (int j = 0; j < storage[i].size(); j++)
             {
                 // Проверка на наличие тега (фильтр тегов)
-                if (!CheckingForTag(storage[i]))
+                if (!checkingForTag(storage[i]))
                 {
                     break;
                 }
@@ -141,7 +141,7 @@ public:
                     found = true;
 
                     // Ищем последний вложенный тег
-                    CheckingForAnotherTag(storage[i], j);
+                    checkingForAnotherTag(storage[i], j);
 
                     for (int z = j + 1; z < storage[i].size(); z++)
                     {
