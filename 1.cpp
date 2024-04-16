@@ -217,6 +217,13 @@ private:
         }
     }
 
+    void addListElement(string word)
+    {
+        list<string> newList;
+        newList.push_back(word);
+        story[word] = newList;
+    }
+
 public:
     MapProcessing(map<string, value> stories)
     {
@@ -254,22 +261,21 @@ public:
         convertKeysInList();
         for (auto word : words)
         {
+            // Добавляем само слово в словарь
+            addListElement(word);
+            // Для слов, состоящих из одного или двух букв
             if (word.size() == 1 || word.size() == 2)
             {
-                list<string> newList;
-                newList.push_back(word);
-                story[word] = newList;
+                addListElement(word);
             }
             else
             {
-                for (size_t i = 0; i <= word.size() - NGRAM; i++)
+                for (int i = 0; i <= word.size() - NGRAM; i++)
                 {
                     string ngram = word.substr(i, NGRAM);
                     if (story.find(ngram) == story.end())
                     {
-                        list<string> newList;
-                        newList.push_back(word);
-                        story[ngram] = newList;
+                        addListElement(word);
                     }
                     else
                     {
