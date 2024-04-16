@@ -3,10 +3,12 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <list>
 
 using namespace std;
 
 #define FILENAME "index.txt"
+#define NGRAM 3
 
 class value
 {
@@ -149,7 +151,7 @@ public:
                         // Если ключ не пуст и при этом мы нашли закрывающею скобку
                         if (key != "" && storage[i][z] == '<')
                         {
-                            // Если результируйщий map был не пуст по переданному ключу, то мы прибавляем 1 к уже имеющемуся count 
+                            // Если результируйщий map был не пуст по переданному ключу, то мы прибавляем 1 к уже имеющемуся count
                             if (result[key].getName() != "")
                             {
                                 count += 1;
@@ -159,7 +161,7 @@ public:
                                 count = 1;
                             }
                             // Сохраням результат через конструктор value и очищаем ключ
-                            result[key] = value(count, key); 
+                            result[key] = value(count, key);
                             key = "";
                             break;
                         }
@@ -181,6 +183,8 @@ class MapProcessing
 {
 private:
     map<string, value> result;
+    map<string, list<string>> story;
+    vector<string> words;
 
     void printMap(map<string, value>::iterator it)
     {
@@ -188,6 +192,12 @@ private:
              << "Count: " << it->second.getCount() << "\n"
              << "Adress: " << it->second.getNameAdress() << "\n"
              << endl;
+    }
+
+    void convertKeysInList() { 
+        for (map<string, value>::iterator it = result.begin(); it != result.end(); ++it) {
+            words.push_back(it->second.getName());
+        }
     }
 
 public:
@@ -204,18 +214,51 @@ public:
         }
     }
 
-    void search(string key)
+    void search(string word)
     {
-        for (map<string, value>::iterator it = result.begin(); it != result.end(); ++it)
+        createNGram();
+        if (story.find(word) == story.end())
         {
-            if (it->first == key)
+            cout << "Not found" << endl;
+        }
+        else
+        {
+            for (auto it = story[word].begin(); it != story[word].end(); it++)
             {
-                printMap(it);
-                return;
+                cout << *it << " ";
+            }
+            cout << endl;
+        }
+    }
+
+    void createNGram()
+    {
+        convertKeysInList();
+        for (auto word : words)
+        {
+            cout << word << endl;
+            if(word.size() == 1 || word.size() == 2) {
+                string ngram = word;
+                list<string> newList;
+                newList.push_back(word);
+                story[ngram] = newList;
+                break;
+            }
+            for (size_t i = 0; i <= word.size() - NGRAM; i++)
+            {
+                string ngram = word.substr(i, NGRAM);
+                if (story.find(ngram) == story.end())
+                {
+                    list<string> newList;
+                    newList.push_back(word);
+                    story[ngram] = newList;
+                }
+                else
+                {
+                    story[ngram].push_back(word);
+                }
             }
         }
-
-        cout << "Key not found!" << endl;
     }
 
     void mergingPairs(string key1, string key2)
@@ -241,15 +284,17 @@ int main()
 
     MapProcessing processor = MapProcessing(parser.parserFile(storage));
 
-    processor.getMap();
+    // processor.getMap();
 
-    processor.search("Сидоров");
+    // for(size_t i = 0; i < storage.size(); i++) { 
+    //     cout << "storage[" << i << "] = " << storage[i] << endl;
+    // }
+
+    // processor.search("Сидоров");
     processor.search("Слово 2");
 
-    processor.mergingPairs("Сидоров", "Слово 2");
-    processor.mergingPairs("Слово 2", "Слово 3");
-
-    processor.getMap();
+    // processor.mergingPairs("Сидоров", "Слово 2");
+    // processor.mergingPairs("Слово 2", "Слово 3");
 
     return 0;
 }
