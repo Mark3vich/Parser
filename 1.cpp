@@ -96,7 +96,7 @@ private:
         int numberOfTagsThatOpen = 0;
         int numberOfTagsThatClose = 0;
         bool wasThereClosingCharacter = false;
-        for (int i = 0; i < storage.size(); i++)
+        for (size_t i = 0; i < storage.size(); i++)
         {
             if (storage[i] == '<')
             {
@@ -111,7 +111,9 @@ private:
                 wasThereClosingCharacter = true;
             }
         }
-        if (numberOfTagsThatOpen == numberOfTagsThatClose && numberOfTagsThatOpen >= 2 && numberOfTagsThatClose >= 2 && wasThereClosingCharacter)
+        if (numberOfTagsThatOpen == numberOfTagsThatClose &&
+            numberOfTagsThatOpen >= 2 && numberOfTagsThatClose >= 2 &&
+            wasThereClosingCharacter)
         {
             isFlag = true;
         }
@@ -194,9 +196,24 @@ private:
              << endl;
     }
 
-    void convertKeysInList() { 
-        for (map<string, value>::iterator it = result.begin(); it != result.end(); ++it) {
+    void convertKeysInList()
+    {
+        for (map<string, value>::iterator it = result.begin(); it != result.end(); ++it)
+        {
             words.push_back(it->second.getName());
+        }
+    }
+
+    void printList()
+    {
+        for (auto it = story.begin(); it != story.end(); it++)
+        {
+            cout << it->first << " -> ";
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++)
+            {
+                cout << *it2 << " ";
+            }
+            cout << endl;
         }
     }
 
@@ -204,6 +221,7 @@ public:
     MapProcessing(map<string, value> stories)
     {
         this->result = stories;
+        createNGram();
     }
 
     void getMap()
@@ -216,18 +234,18 @@ public:
 
     void search(string word)
     {
-        createNGram();
-        if (story.find(word) == story.end())
+        bool isFlag = false;
+        for (auto it = story.begin(); it != story.end(); it++)
+        {
+            if (it->first == word)
+            {
+                isFlag = true;
+                cout << "Result: " << it->first << endl;
+            }
+        }
+        if (!isFlag)
         {
             cout << "Not found" << endl;
-        }
-        else
-        {
-            for (auto it = story[word].begin(); it != story[word].end(); it++)
-            {
-                cout << *it << " ";
-            }
-            cout << endl;
         }
     }
 
@@ -236,26 +254,27 @@ public:
         convertKeysInList();
         for (auto word : words)
         {
-            cout << word << endl;
-            if(word.size() == 1 || word.size() == 2) {
-                string ngram = word;
+            if (word.size() == 1 || word.size() == 2)
+            {
                 list<string> newList;
                 newList.push_back(word);
-                story[ngram] = newList;
-                break;
+                story[word] = newList;
             }
-            for (size_t i = 0; i <= word.size() - NGRAM; i++)
+            else
             {
-                string ngram = word.substr(i, NGRAM);
-                if (story.find(ngram) == story.end())
+                for (size_t i = 0; i <= word.size() - NGRAM; i++)
                 {
-                    list<string> newList;
-                    newList.push_back(word);
-                    story[ngram] = newList;
-                }
-                else
-                {
-                    story[ngram].push_back(word);
+                    string ngram = word.substr(i, NGRAM);
+                    if (story.find(ngram) == story.end())
+                    {
+                        list<string> newList;
+                        newList.push_back(word);
+                        story[ngram] = newList;
+                    }
+                    else
+                    {
+                        story[ngram].push_back(word);
+                    }
                 }
             }
         }
@@ -284,17 +303,14 @@ int main()
 
     MapProcessing processor = MapProcessing(parser.parserFile(storage));
 
-    // processor.getMap();
+    processor.getMap();
 
-    // for(size_t i = 0; i < storage.size(); i++) { 
-    //     cout << "storage[" << i << "] = " << storage[i] << endl;
-    // }
+    processor.search("Сидоров");
+    processor.search("9");
+    processor.search("Сло");
 
-    // processor.search("Сидоров");
-    processor.search("Слово 2");
-
-    // processor.mergingPairs("Сидоров", "Слово 2");
-    // processor.mergingPairs("Слово 2", "Слово 3");
+    processor.mergingPairs("Сидоров", "Слово 2");
+    processor.mergingPairs("Слово 2", "Слово 3");
 
     return 0;
 }
